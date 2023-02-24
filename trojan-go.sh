@@ -1,7 +1,5 @@
 #!/bin/bash
 # trojan-go一键安装脚本
-# Author: weifang<https://weifang.me>
-
 
 RED="\033[31m"      # Error message
 GREEN="\033[32m"    # Success message
@@ -15,7 +13,6 @@ V6_PROXY=""
 IP=`curl -sL -4 ip.sb`
 if [[ "$?" != "0" ]]; then
     IP=`curl -sL -6 ip.sb`
-    V6_PROXY="https://gh.hijk.art/"
 fi
 
 BT="false"

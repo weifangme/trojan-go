@@ -1,6 +1,6 @@
 #!/bin/bash
 # trojan-go一键安装脚本
-# Author: hijk<https://hijk.art>
+# Author: weifang<https://weifang.me>
 
 
 RED="\033[31m"      # Error message
@@ -421,7 +421,7 @@ getCert() {
             systemctl start cron
             systemctl enable cron
         fi
-        curl -sL https://get.acme.sh | sh -s email=hijk.pw@protonmail.ch
+        curl -sL https://get.acme.sh | sh -s email=trojango@weifang.me
         source ~/.bashrc
         ~/.acme.sh/acme.sh  --upgrade  --auto-upgrade
         ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
@@ -431,7 +431,7 @@ getCert() {
             ~/.acme.sh/acme.sh   --issue -d $DOMAIN --keylength ec-256 --pre-hook "nginx -s stop || { echo -n ''; }" --post-hook "nginx -c /www/server/nginx/conf/nginx.conf || { echo -n ''; }"  --standalone
         fi
         [[ -f ~/.acme.sh/${DOMAIN}_ecc/ca.cer ]] || {
-            colorEcho $RED " 获取证书失败，请复制上面的红色文字到 https://hijk.art 反馈"
+            colorEcho $RED " 获取证书失败，请复制上面的红色文字反馈"
             exit 1
         }
         CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
@@ -441,7 +441,7 @@ getCert() {
             --fullchain-file $CERT_FILE \
             --reloadcmd     "service nginx force-reload"
         [[ -f $CERT_FILE && -f $KEY_FILE ]] || {
-            colorEcho $RED " 获取证书失败，请到 https://hijk.art 反馈"
+            colorEcho $RED " 获取证书失败，请反馈"
             exit 1
         }
     else
@@ -523,8 +523,8 @@ EOF
     else
         cat > $NGINX_CONF_PATH${DOMAIN}.conf<<-EOF
 server {
-    listen 80;
-    listen [::]:80;
+    listen 80 http2;
+    listen [::]:80 http2;
     server_name ${DOMAIN};
     root /usr/share/nginx/html;
     location / {
@@ -574,20 +574,32 @@ configTrojan() {
     "local_port": ${PORT},
     "remote_addr": "127.0.0.1",
     "remote_port": 80,
+    "disable_http_check": false,
+    "log_level": 2,
+    "log_file": "/tmp/trojan-go.log",
     "password": [
         "$PASSWORD"
     ],
     "ssl": {
+        "verify": true,
+        "verify_hostname": true,
         "cert": "${CERT_FILE}",
         "key": "${KEY_FILE}",
+        "key_password": "",
+        "cipher": "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA:AES128-SHA:AES256-SHA:DES-CBC3-SHA",
+        "cipher_tls13": "TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384",
+        "prefer_server_cipher": false,
         "sni": "${DOMAIN}",
         "alpn": [
-            "http/1.1"
-        ],
+                "http1.1",
+                "h2"
+                ],
         "session_ticket": true,
         "reuse_session": true,
+        "plain_http_response": "",
         "fallback_addr": "127.0.0.1",
         "fallback_port": 80
+        "fingerprint": "firefox"
     },
     "tcp": {
         "no_delay": true,
@@ -901,6 +913,7 @@ showInfo() {
     echo ""
     echo -e " ${BLUE}trojan-go配置文件: ${PLAIN} ${RED}${CONFIG_FILE}${PLAIN}"
     echo -e " ${BLUE}trojan-go配置信息：${PLAIN}"
+    echo -e "   日志地址:/tmp/trojan-go.log"
     echo -e "   IP：${RED}$IP${PLAIN}"
     echo -e "   伪装域名/主机名(host)/SNI/peer名称：${RED}$domain${PLAIN}"
     echo -e "   端口(port)：${RED}$port${PLAIN}"
@@ -926,12 +939,8 @@ showLog() {
 menu() {
     clear
     echo "#############################################################"
-    echo -e "#                    ${RED}trojan-go一键安装脚本${PLAIN}                  #"
-    echo -e "# ${GREEN}作者${PLAIN}: 网络跳越(hijk)                                      #"
-    echo -e "# ${GREEN}网址${PLAIN}: https://hijk.art                                    #"
-    echo -e "# ${GREEN}论坛${PLAIN}: https://hijk.club                                   #"
-    echo -e "# ${GREEN}TG群${PLAIN}: https://t.me/hijkclub                               #"
-    echo -e "# ${GREEN}Youtube频道${PLAIN}: https://youtube.com/channel/UCYTB--VsObzepVJtc9yvUxQ #"
+    echo -e "#                    ${RED}trojan-go一键安装脚本${PLAIN}   #"
+    echo -e "# ${GREEN}作者${PLAIN}:   trojan-go一键安装脚本             #"
     echo "#############################################################"
     echo ""
 
